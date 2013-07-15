@@ -61,6 +61,7 @@ from lxml import etree
 from oslo.config import cfg
 from xml.dom import minidom
 
+from nova.logger import logger
 from nova.api.metadata import base as instance_metadata
 from nova import block_device
 from nova.compute import instance_types
@@ -291,6 +292,7 @@ class LibvirtDriver(driver.ComputeDriver):
         }
 
     def __init__(self, virtapi, read_only=False):
+        logger.debug("LibvirtDriver virtapi:{} readonly".format(virtapi,read_only))
         super(LibvirtDriver, self).__init__(virtapi)
 
         global libvirt
@@ -691,16 +693,19 @@ class LibvirtDriver(driver.ComputeDriver):
             self.vif_driver.unplug(instance, (network, mapping))
 
     def _destroy(self, instance):
+        logger.debug("_destroy")
         try:
             virt_dom = self._lookup_by_name(instance['name'])
         except exception.NotFound:
             virt_dom = None
+        logger.debug("virt_dom {}:{}".format(virt_dom,virt_dom.__class__))
 
         # If the instance is already terminated, we're still happy
         # Otherwise, destroy it
         old_domid = -1
         if virt_dom is not None:
             try:
+                logger.debug("start try")
                 old_domid = virt_dom.ID()
                 virt_dom.destroy()
             except libvirt.libvirtError as e:
@@ -1399,6 +1404,8 @@ class LibvirtDriver(driver.ComputeDriver):
 
     def power_off(self, instance):
         """Power off the specified instance."""
+        logger.debug("power off")
+        logger.debug("instance:{}".format(instance))
         self._destroy(instance)
 
     def power_on(self, instance):
@@ -1509,21 +1516,24 @@ class LibvirtDriver(driver.ComputeDriver):
     # for xenapi(tr3buchet)
     def spawn(self, context, instance, image_meta, injected_files,
               admin_password, network_info=None, block_device_info=None):
+        logger.debug("spawn of libvirt")
         disk_info = blockinfo.get_disk_info(CONF.libvirt_type,
                                             instance,
                                             block_device_info,
                                             image_meta)
+        logger.debug("disk info:{}".format(disk_info))
         self._create_image(context, instance,
                            disk_info['mapping'],
                            network_info=network_info,
                            block_device_info=block_device_info,
                            files=injected_files,
                            admin_pass=admin_password)
+        logger.debug("to xml")
         xml = self.to_xml(instance, network_info,
                           disk_info, image_meta,
                           block_device_info=block_device_info,
                           write_to_disk=True)
-
+        logger.debug("xml:{}".format(xml))
         self._create_domain_and_network(xml, instance, network_info,
                                         block_device_info)
         LOG.debug(_("Instance is running"), instance=instance)
@@ -1732,6 +1742,7 @@ class LibvirtDriver(driver.ComputeDriver):
                       disk_mapping, suffix='',
                       disk_images=None, network_info=None,
                       block_device_info=None, files=None, admin_pass=None):
+        logger.debug("_create_image")
         if not suffix:
             suffix = ''
 
@@ -1746,8 +1757,11 @@ class LibvirtDriver(driver.ComputeDriver):
                                 fname + suffix)
 
         def image(fname, image_type=CONF.libvirt_images_type):
-            return self.image_backend.image(instance,
+            logger.debug("IMAGE fnmae+suffix:{} image_type:{}".format(fname+suffix,image_type))
+            i = self.image_backend.image(instance,
                                             fname + suffix, image_type)
+            logger.debug("i {}:{}".format(i,i.__class__))
+            return i
 
         def raw(fname):
             return image(fname, image_type='raw')
@@ -1765,9 +1779,11 @@ class LibvirtDriver(driver.ComputeDriver):
             self._get_console_log_path(instance), '', 007)
 
         if not disk_images:
+            logger.debug("no disk images")
             disk_images = {'image_id': instance['image_ref'],
                            'kernel_id': instance['kernel_id'],
                            'ramdisk_id': instance['ramdisk_id']}
+        logger.debug("disk images:[]".format(disk_images))
 
         if disk_images['kernel_id']:
             fname = imagecache.get_cache_fname(disk_images, 'kernel_id')
@@ -1787,11 +1803,13 @@ class LibvirtDriver(driver.ComputeDriver):
                                      project_id=instance['project_id'])
 
         inst_type = instance_types.extract_instance_type(instance)
+        logger.debug("inst type:{}".format(inst_type))
 
         # NOTE(ndipanov): Even if disk_mapping was passed in, which
         # currently happens only on rescue - we still don't want to
         # create a base image.
         if not booted_from_volume:
+            logger.debug("not booted from volume")
             root_fname = imagecache.get_cache_fname(disk_images, 'image_id')
             size = instance['root_gb'] * 1024 * 1024 * 1024
 
@@ -1836,6 +1854,7 @@ class LibvirtDriver(driver.ComputeDriver):
                 ephemeral_size=eph['size'])
 
         if 'disk.swap' in disk_mapping:
+            logger.debug("disk swap")
             mapping = disk_mapping['disk.swap']
             swap_mb = 0
 
@@ -1878,6 +1897,7 @@ class LibvirtDriver(driver.ComputeDriver):
 
         # File injection
         elif CONF.libvirt_inject_partition != -2:
+            logger.debug("file injection")
             target_partition = None
             if not instance['kernel_id']:
                 target_partition = CONF.libvirt_inject_partition
@@ -1908,6 +1928,7 @@ class LibvirtDriver(driver.ComputeDriver):
                         LOG.info(_('Injecting %(inj)s into image '
                                    '%(img_id)s'), locals(), instance=instance)
                 try:
+                    logger.debug("disk:{}:{}".format(disk,disk.__class__))
                     disk.inject_data(injection_path,
                                      key, net, metadata, admin_pass, files,
                                      partition=target_partition,
@@ -1921,6 +1942,8 @@ class LibvirtDriver(driver.ComputeDriver):
 
         if CONF.libvirt_type == 'uml':
             libvirt_utils.chown(image('disk').path, 'root')
+        
+        logger.debug("end")
 
     def get_host_capabilities(self):
         """Returns an instance of config.LibvirtConfigCaps representing

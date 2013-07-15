@@ -30,6 +30,7 @@ import logging
 
 from oslo.config import cfg
 
+from nova.logger import logger
 from nova.openstack.common.gettextutils import _
 from nova.openstack.common import importutils
 from nova.openstack.common import local
@@ -135,9 +136,12 @@ def call(context, topic, msg, timeout=None, check_for_lock=False):
     :raises: openstack.common.rpc.common.Timeout if a complete response
              is not received before the timeout is reached.
     """
+    logger.debug("call")
     if check_for_lock:
         _check_for_lock()
-    return _get_impl().call(CONF, context, topic, msg, timeout)
+    c = _get_impl().call(CONF, context, topic, msg, timeout)
+    logger.debug("c:{}".format(c))
+    return c
 
 
 def cast(context, topic, msg):
@@ -155,6 +159,7 @@ def cast(context, topic, msg):
 
     :returns: None
     """
+    logger.debug("_get_impl():{}:{}".format(_get_impl(),_get_impl().__class__))
     return _get_impl().cast(CONF, context, topic, msg)
 
 

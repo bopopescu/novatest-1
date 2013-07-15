@@ -20,6 +20,7 @@ Client side of the scheduler manager RPC API.
 
 from oslo.config import cfg
 
+from nova.logger import logger
 from nova.openstack.common import jsonutils
 import nova.openstack.common.rpc.proxy
 
@@ -71,12 +72,16 @@ class SchedulerAPI(nova.openstack.common.rpc.proxy.RpcProxy):
     BASE_RPC_API_VERSION = '2.0'
 
     def __init__(self):
+        logger.debug("SCHEDULAR API:{}".format(self))
         super(SchedulerAPI, self).__init__(topic=CONF.scheduler_topic,
                 default_version=self.BASE_RPC_API_VERSION)
 
     def run_instance(self, ctxt, request_spec, admin_password,
             injected_files, requested_networks, is_first_time,
             filter_properties):
+        logger.debug("run instance")
+        logger.debug("cast:{}".format(self.cast))
+	logger.debug("make_msg:{}".format(self.make_msg))
         return self.cast(ctxt, self.make_msg('run_instance',
                 request_spec=request_spec, admin_password=admin_password,
                 injected_files=injected_files,

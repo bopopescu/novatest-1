@@ -30,6 +30,7 @@ import uuid
 
 from oslo.config import cfg
 
+from nova.logger import logger
 from nova import availability_zones
 from nova import block_device
 from nova.compute import instance_actions
@@ -179,6 +180,7 @@ class API(base.Base):
 
     def __init__(self, image_service=None, network_api=None, volume_api=None,
                  security_group_api=None, **kwargs):
+        logger.debug("compute API")
         self.image_service = (image_service or
                               glance.get_default_image_service())
 
@@ -193,6 +195,7 @@ class API(base.Base):
         self.servicegroup_api = servicegroup.API()
 
         super(API, self).__init__(**kwargs)
+        logger.debug("scheduler_rcapi:{}".format(self.scheduler_rpcapi))
 
     def _instance_update(self, context, instance_uuid, **kwargs):
         """Update an instance in the database using kwargs as value."""
@@ -660,7 +663,7 @@ class API(base.Base):
         """Verify all the input parameters regardless of the provisioning
         strategy being performed and schedule the instance(s) for
         creation."""
-
+        logger.debug("_create_instance")
         if reservation_id is None:
             reservation_id = utils.generate_uid('r')
 
@@ -673,17 +676,17 @@ class API(base.Base):
                         access_ip_v6, requested_networks, config_drive,
                         block_device_mapping, auto_disk_config,
                         reservation_id, scheduler_hints)
-
+        logger.debug("instances:{},request_spec:{},filter_properties:{}".format(instances,request_spec,filter_properties))
         for instance in instances:
             self._record_action_start(context, instance,
                                       instance_actions.CREATE)
-
+        logger.debug("self.scheduler_rpcapi:{}".format(self.scheduler_rpcapi))
         self.scheduler_rpcapi.run_instance(context,
                 request_spec=request_spec,
                 admin_password=admin_password, injected_files=injected_files,
                 requested_networks=requested_networks, is_first_time=True,
                 filter_properties=filter_properties)
-
+        logger.debug("reservation_id:{}".format(reservation_id))
         return (instances, reservation_id)
 
     @staticmethod

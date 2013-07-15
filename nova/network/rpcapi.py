@@ -20,6 +20,7 @@ Client side of the network RPC API.
 
 from oslo.config import cfg
 
+from nova.logger import logger
 from nova.openstack.common import jsonutils
 from nova.openstack.common import rpc
 from nova.openstack.common.rpc import proxy as rpc_proxy
@@ -159,6 +160,7 @@ class NetworkAPI(rpc_proxy.RpcProxy):
 
     def allocate_for_instance(self, ctxt, instance_id, project_id, host,
                               rxtx_factor, vpn, requested_networks, macs=None):
+        logger.debug("allocate for instance")
         if CONF.multi_host:
             topic = rpc.queue_get_for(ctxt, self.topic, host)
         else:

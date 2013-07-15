@@ -35,10 +35,12 @@ import sys
 import time
 import traceback
 import uuid
+import inspect
 
 from eventlet import greenthread
 from oslo.config import cfg
 
+from nova.logger import logger
 from nova import block_device
 from nova.cells import rpcapi as cells_rpcapi
 from nova.cloudpipe import pipelib
@@ -328,6 +330,8 @@ class ComputeManager(manager.SchedulerDependentManager):
 
     def __init__(self, compute_driver=None, *args, **kwargs):
         """Load configuration options and connect to the hypervisor."""
+        logger.debug("COMPUTE MANGER")
+        logger.debug("called by:{}".format(inspect.getframeinfo(inspect.currentframe().f_back)[2]))
         self.virtapi = ComputeVirtAPI(self)
         self.network_api = network.API()
         self.volume_api = volume.API()
@@ -351,6 +355,8 @@ class ComputeManager(manager.SchedulerDependentManager):
         # compute manager via the virtapi, so we want it to be fully
         # initialized before that happens.
         self.driver = driver.load_compute_driver(self.virtapi, compute_driver)
+        logger.debug("virtapi:{} networkapi:{} volumeapi:{}".format(self.virtapi,self.network_api,self.volume_api))
+	logger.debug("computeapi:{} conductorapi:{} computedrive:{} driver:{}".format(self.compute_api,self.conductor_api,compute_driver,self.driver.__class__))
 
     def _get_resource_tracker(self, nodename):
         rt = self._resource_tracker_dict.get(nodename)
@@ -462,6 +468,7 @@ class ComputeManager(manager.SchedulerDependentManager):
 
     def _init_instance(self, context, instance):
         '''Initialize this instance during service init.'''
+        logger.debug("_init instance")
         closing_vm_states = (vm_states.DELETED,
                              vm_states.SOFT_DELETED)
 
@@ -598,6 +605,7 @@ class ComputeManager(manager.SchedulerDependentManager):
 
     def init_host(self):
         """Initialization for a standalone compute service."""
+        logger.debug("init host")
         self.driver.init_host(host=self.host)
         context = nova.context.get_admin_context()
         instances = self.conductor_api.instance_get_all_by_host(context,
@@ -793,7 +801,10 @@ class ComputeManager(manager.SchedulerDependentManager):
                       filter_properties, requested_networks, injected_files,
                       admin_password, is_first_time, node, instance):
         """Launch a new instance with specified options."""
+        logger.debug("_run instance")
+        logger.debug("instance:{} {}".format(instance,instance.__class__))
         context = context.elevated()
+        logger.debug("context:{}".format(context))
 
         # If quantum security groups pass requested security
         # groups to allocate_for_instance()
@@ -803,6 +814,8 @@ class ComputeManager(manager.SchedulerDependentManager):
             security_groups = []
 
         try:
+            logger.debug("start try")
+            
             self._check_instance_exists(context, instance)
 
             try:
@@ -842,9 +855,11 @@ class ComputeManager(manager.SchedulerDependentManager):
                 limits = filter_properties.get('limits', {})
                 with rt.instance_claim(context, instance, limits):
                     macs = self.driver.macs_for_instance(instance)
-
-                    network_info = self._allocate_network(context, instance,
-                            requested_networks, macs, security_groups)
+                    logger.debug("self driver:{}".format(self.driver))
+                    logger.debug("macs:{}".format(macs))
+                    
+                    network_info = self._allocate_network(context, instance,requested_networks, macs, security_groups)
+                    logger.debug("network info:{}".format(network_info))
 
                     self._instance_update(
                             context, instance['uuid'],
@@ -853,15 +868,19 @@ class ComputeManager(manager.SchedulerDependentManager):
 
                     block_device_info = self._prep_block_device(
                             context, instance, bdms)
+                    logger.debug("block device info:{}".format(block_device_info))
 
                     set_access_ip = (is_first_time and
                                      not instance['access_ip_v4'] and
                                      not instance['access_ip_v6'])
-
+                    logger.debug("set access ip:{}".format(set_access_ip))
+                   
+                    logger.debug("SPAWN")
                     instance = self._spawn(context, instance, image_meta,
                                            network_info, block_device_info,
                                            injected_files, admin_password,
                                            set_access_ip=set_access_ip)
+
             except exception.InstanceNotFound:
                 # the instance got deleted during the spawn
                 with excutils.save_and_reraise_exception():
@@ -887,6 +906,7 @@ class ComputeManager(manager.SchedulerDependentManager):
                         filter_properties, bdms)
             else:
                 # Spawn success:
+                logger.debug("spawn sucess")
                 self._notify_about_instance_usage(context, instance,
                         "create.end", network_info=network_info,
                         extra_usage_info=extra_usage_info)
@@ -1018,8 +1038,11 @@ class ComputeManager(manager.SchedulerDependentManager):
                image, but is accurate because it reflects the image's
                actual size.
         """
+        logger.debug("_check_image_size")
         if instance['image_ref']:
+            logger.debug("image ref:{}".format(instance["image_ref"]))
             image_meta = _get_image_meta(context, instance['image_ref'])
+            logger.debug("image meta:{}".format(image_meta))
         else:  # Instance was started from volume - so no image ref
             return {}
 
@@ -1072,13 +1095,17 @@ class ComputeManager(manager.SchedulerDependentManager):
     def _allocate_network(self, context, instance, requested_networks, macs,
                           security_groups):
         """Allocate networks for an instance and return the network info."""
+        logger.debug("_allocate_network")
         instance = self._instance_update(context, instance['uuid'],
                                          vm_state=vm_states.BUILDING,
                                          task_state=task_states.NETWORKING,
                                          expected_task_state=None)
         is_vpn = pipelib.is_vpn_image(instance['image_ref'])
+        logger.debug("is vpn:{}".format(is_vpn))
         try:
             # allocate and get network info
+            logger.debug(self.network_api)
+            logger.debug(self.network_api.allocate_for_instance)
             network_info = self.network_api.allocate_for_instance(
                                 context, instance, vpn=is_vpn,
                                 requested_networks=requested_networks,
@@ -1087,12 +1114,13 @@ class ComputeManager(manager.SchedulerDependentManager):
                                 security_groups=security_groups)
         except Exception:
             with excutils.save_and_reraise_exception():
+                logger.debug("Instance failed network setup")
                 LOG.exception(_('Instance failed network setup'),
                               instance=instance)
 
         LOG.debug(_('Instance network_info: |%s|'), network_info,
                   instance=instance)
-
+        
         return network_info
 
     def _prep_block_device(self, context, instance, bdms):
@@ -1108,11 +1136,14 @@ class ComputeManager(manager.SchedulerDependentManager):
                block_device_info, injected_files, admin_password,
                set_access_ip=False):
         """Spawn an instance with error logging and update its power state."""
+        logger.debug("_spawn")
         instance = self._instance_update(context, instance['uuid'],
                 vm_state=vm_states.BUILDING,
                 task_state=task_states.SPAWNING,
                 expected_task_state=task_states.BLOCK_DEVICE_MAPPING)
+        logger.debug("instance:{}".format(instance))
         try:
+            logger.debug(self.driver.spawn)
             self.driver.spawn(context, instance, image_meta,
                               injected_files, admin_password,
                               self._legacy_nw_info(network_info),
@@ -1140,6 +1171,7 @@ class ComputeManager(manager.SchedulerDependentManager):
             """
 
             network_name = CONF.default_access_ip_network_name
+            logger.debug("network name".format(network_name))
             if not network_name:
                 return
 
@@ -1153,6 +1185,7 @@ class ComputeManager(manager.SchedulerDependentManager):
                     return
 
         if set_access_ip:
+            logger.debug("set access ip")
             _set_access_ip_values()
 
         return self._instance_update(context, instance['uuid'],
@@ -1228,7 +1261,8 @@ class ComputeManager(manager.SchedulerDependentManager):
                      filter_properties=None, requested_networks=None,
                      injected_files=None, admin_password=None,
                      is_first_time=False, node=None):
-
+        logger.debug("run instance")
+        logger.debug("called by:{}".format(inspect.getouterframes(inspect.currentframe(),2)))
         if filter_properties is None:
             filter_properties = {}
 

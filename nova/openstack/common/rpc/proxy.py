@@ -21,7 +21,7 @@ For more information about rpc API version numbers, see:
     rpc/dispatcher.py
 """
 
-
+from nova.logger import logger
 from nova.openstack.common import rpc
 
 
@@ -76,6 +76,7 @@ class RpcProxy(object):
 
         :returns: The return value from the remote method.
         """
+        logger.debug("call")
         self._set_version(msg, version)
         return rpc.call(context, self._get_topic(topic), msg, timeout)
 
@@ -109,6 +110,8 @@ class RpcProxy(object):
         :returns: None.  rpc.cast() does not wait on any return value from the
                   remote method.
         """
+        logger.debug("cast")
+        logger.debug("topic:{} context:{} msg:{}".format(topic,context,msg))
         self._set_version(msg, version)
         rpc.cast(context, self._get_topic(topic), msg)
 

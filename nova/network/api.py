@@ -20,6 +20,7 @@
 import functools
 import inspect
 
+from nova.logger import logger
 from nova.cells import rpcapi as cells_rpcapi
 from nova.compute import instance_types
 from nova.db import base
@@ -122,11 +123,14 @@ class API(base.Base):
     _sentinel = object()
 
     def __init__(self, **kwargs):
+        logger.debug("Network")
         self.network_rpcapi = network_rpcapi.NetworkAPI()
+        logger.debug("network_rpcapi:{}".format(self.network_rpcapi))
         helper = utils.ExceptionHelper
         # NOTE(vish): this local version of floating_manager has to convert
         #             ClientExceptions back since they aren't going over rpc.
         self.floating_manager = helper(floating_ips.LocalManager())
+        logger.debug("floating manager:{}".format(self.floating_manager))
         super(API, self).__init__(**kwargs)
 
     @wrap_check_policy
@@ -271,6 +275,7 @@ class API(base.Base):
         #             this is called from compute.manager which shouldn't
         #             have db access so we do it on the other side of the
         #             rpc.
+        logger.debug("allocate for instance")
         instance_type = instance_types.extract_instance_type(instance)
         args = {}
         args['vpn'] = vpn
@@ -280,8 +285,10 @@ class API(base.Base):
         args['host'] = instance['host']
         args['rxtx_factor'] = instance_type['rxtx_factor']
         args['macs'] = macs
+        logger.debug(self.network_rpcapi.allocate_for_instance)
         nw_info = self.network_rpcapi.allocate_for_instance(context, **args)
-
+        logger.debug("nw info:{}".format(nf_info))
+        logger.debug("{}:{}".format(network_model,network_model.NetworkInfo))
         return network_model.NetworkInfo.hydrate(nw_info)
 
     @wrap_check_policy
