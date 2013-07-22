@@ -38,7 +38,7 @@ from eventlet import semaphore
 # This import should no longer be needed when the amqp_rpc_single_reply_queue
 # option is removed.
 from oslo.config import cfg
-
+from nova.logger import logger
 from nova.openstack.common import excutils
 from nova.openstack.common.gettextutils import _
 from nova.openstack.common import local
@@ -379,12 +379,14 @@ class ProxyCallback(_ThreadPoolWithWait):
     """Calls methods on a proxy object based on method and args."""
 
     def __init__(self, conf, proxy, connection_pool):
+        logger.debug("ProxyCallBack")
         super(ProxyCallback, self).__init__(
             conf=conf,
             connection_pool=connection_pool,
         )
         self.proxy = proxy
         self.msg_id_cache = _MsgIdCache()
+        logger.debug("self.proxy:{}".format(self.proxy))
 
     def __call__(self, message_data):
         """Consumer callback to call a method on a proxy object.
@@ -401,6 +403,7 @@ class ProxyCallback(_ThreadPoolWithWait):
         """
         # It is important to clear the context here, because at this point
         # the previous context is stored in local.store.context
+        logger.debug("ProxyCallBack called")
         if hasattr(local.store, 'context'):
             del local.store.context
         rpc_common._safe_log(LOG.debug, _('received %s'), message_data)
@@ -414,6 +417,7 @@ class ProxyCallback(_ThreadPoolWithWait):
             ctxt.reply(_('No method for message: %s') % message_data,
                        connection_pool=self.connection_pool)
             return
+        logger.debug("method is {}".format(method))
         self.pool.spawn_n(self._process_data, ctxt, version, method, args)
 
     def _process_data(self, ctxt, version, method, args):
@@ -425,9 +429,12 @@ class ProxyCallback(_ThreadPoolWithWait):
         the old behavior of magically calling the specified method on the
         proxy we have here.
         """
+        logger.debug("_process_data")
+        logger.debug("self.proxy:{}".format(self.proxy))
         ctxt.update_store()
         try:
             rval = self.proxy.dispatch(ctxt, version, method, **args)
+            logger.debug("rval:{}".format(rval))
             # Check if the result was a generator
             if inspect.isgenerator(rval):
                 for x in rval:
