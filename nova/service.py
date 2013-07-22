@@ -410,6 +410,7 @@ class Service(object):
         # of the servicegroup API.
         self.servicegroup_api = servicegroup.API(db_allowed=db_allowed)
         manager_class = importutils.import_class(self.manager_class_name)
+        #here is the manager
         self.manager = manager_class(host=self.host, *args, **kwargs)
         self.report_interval = report_interval
         self.periodic_enable = periodic_enable
@@ -451,6 +452,7 @@ class Service(object):
         self.conn.create_consumer(self.topic, rpc_dispatcher, fanout=False)
 
         node_topic = '%s.%s' % (self.topic, self.host)
+        #here is the consumer
         self.conn.create_consumer(node_topic, rpc_dispatcher, fanout=False)
 
         self.conn.create_consumer(self.topic, rpc_dispatcher, fanout=True)
@@ -526,6 +528,7 @@ class Service(object):
             periodic_enable = CONF.periodic_enable
         if periodic_fuzzy_delay is None:
             periodic_fuzzy_delay = CONF.periodic_fuzzy_delay
+        #create service from /bin/nova-~~~
         service_obj = cls(host, binary, topic, manager,
                           report_interval=report_interval,
                           periodic_enable=periodic_enable,
