@@ -83,6 +83,7 @@ On the client side, the same changes should be made as in example 1.  The
 minimum version that supports the new parameter should be specified.
 """
 
+from nova.logger import logger
 from nova.openstack.common.rpc import common as rpc_common
 
 
@@ -100,6 +101,7 @@ class RpcDispatcher(object):
                           of a class with rpc methods exposed.  Each proxy
                           object should have an RPC_API_VERSION attribute.
         """
+        logger.debug("RpcDispatcher")
         self.callbacks = callbacks
         super(RpcDispatcher, self).__init__()
 
@@ -115,11 +117,13 @@ class RpcDispatcher(object):
         :returns: Whatever is returned by the underlying method that gets
                   called.
         """
+        logger.debug("dispatch")
         if not version:
             version = '1.0'
 
         had_compatible = False
         for proxyobj in self.callbacks:
+            logger.debug("proxyobj:{}".format(proxyobj))
             if hasattr(proxyobj, 'RPC_API_VERSION'):
                 rpc_api_version = proxyobj.RPC_API_VERSION
             else:
@@ -130,8 +134,10 @@ class RpcDispatcher(object):
             if not hasattr(proxyobj, method):
                 continue
             if is_compatible:
+                logger.debug("is comaptible")
+                logger.debug("proxyobj:{} method:{}".format(proxyobj,method))
                 return getattr(proxyobj, method)(ctxt, **kwargs)
-
+        logger.debug("no suitale method")
         if had_compatible:
             raise AttributeError("No such RPC function '%s'" % method)
         else:

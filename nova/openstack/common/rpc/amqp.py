@@ -38,7 +38,7 @@ from eventlet import semaphore
 # This import should no longer be needed when the amqp_rpc_single_reply_queue
 # option is removed.
 from oslo.config import cfg
-from nova.logger import logger
+from nova.logger import logger,get_caller
 from nova.openstack.common import excutils
 from nova.openstack.common.gettextutils import _
 from nova.openstack.common import local
@@ -379,14 +379,15 @@ class ProxyCallback(_ThreadPoolWithWait):
     """Calls methods on a proxy object based on method and args."""
 
     def __init__(self, conf, proxy, connection_pool):
-        logger.debug("ProxyCallBack")
+        logger.debug("ProxyCallBackINIT")
+        logger.debug("ProxyCallBack called_by:{}".format(get_caller(10)))
         super(ProxyCallback, self).__init__(
             conf=conf,
             connection_pool=connection_pool,
         )
         self.proxy = proxy
         self.msg_id_cache = _MsgIdCache()
-        logger.debug("self.proxy:{}".format(self.proxy))
+        logger.debug("self.proxy:{}:{}".format(self.proxy,self.proxy.__class__))
 
     def __call__(self, message_data):
         """Consumer callback to call a method on a proxy object.
