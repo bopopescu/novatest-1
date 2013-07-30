@@ -40,7 +40,7 @@ import inspect
 from eventlet import greenthread
 from oslo.config import cfg
 
-from nova.logger import logger
+from nova.logger import logger,get_caller
 from nova import block_device
 from nova.cells import rpcapi as cells_rpcapi
 from nova.cloudpipe import pipelib
@@ -331,7 +331,8 @@ class ComputeManager(manager.SchedulerDependentManager):
     def __init__(self, compute_driver=None, *args, **kwargs):
         """Load configuration options and connect to the hypervisor."""
         logger.debug("COMPUTE MANGER")
-        logger.debug("called by:{}".format(inspect.getframeinfo(inspect.currentframe().f_back)[2]))
+        #logger.debug("called by:{}".format(inspect.getframeinfo(inspect.currentframe().f_back)[2]))
+        logger.debug("called_by:{}".format(get_caller(10)))
         self.virtapi = ComputeVirtAPI(self)
         self.network_api = network.API()
         self.volume_api = volume.API()
@@ -1261,9 +1262,11 @@ class ComputeManager(manager.SchedulerDependentManager):
                      filter_properties=None, requested_networks=None,
                      injected_files=None, admin_password=None,
                      is_first_time=False, node=None):
-        logger.debug("run instance")
-        logger.debug("called by:{}".format(inspect.getouterframes(inspect.currentframe(),2)))
-        logger.debug("run instance CONTEXT*********:\n{}".format(context))
+
+        logger.debug("RUN_INSTANCE")
+        logger.debug("run instance called_by:{}".format(get_caller(20)))
+        #logger.debug("called by:{}".format(inspect.getouterframes(inspect.currentframe(),2)))
+
         if filter_properties is None:
             filter_properties = {}
 
