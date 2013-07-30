@@ -25,6 +25,7 @@ import sys
 
 from oslo.config import cfg
 
+from nova.logger import logger,get_caller
 from nova.compute import rpcapi as compute_rpcapi
 from nova.compute import task_states
 from nova.compute import utils as compute_utils
@@ -296,6 +297,7 @@ class SchedulerManager(manager.Manager):
     def select_hosts(self, context, request_spec, filter_properties):
         """Returns host(s) best suited for this request_spec and
         filter_properties"""
+
         hosts = self.driver.select_hosts(context, request_spec,
             filter_properties)
         return jsonutils.to_primitive(hosts)

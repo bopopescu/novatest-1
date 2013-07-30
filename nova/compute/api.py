@@ -946,7 +946,8 @@ class API(base.Base):
 
         Returns a tuple of (instances, reservation_id)
         """
-
+        logger.debug("CREATE")
+        logger.debug("CREATE CONTEXT********:\n{}".format(context))
         self._check_create_policies(context, availability_zone,
                 requested_networks, block_device_mapping)
 

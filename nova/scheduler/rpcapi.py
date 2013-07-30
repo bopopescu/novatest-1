@@ -81,7 +81,7 @@ class SchedulerAPI(nova.openstack.common.rpc.proxy.RpcProxy):
             filter_properties):
         logger.debug("run instance")
         logger.debug("cast:{}".format(self.cast))
-	logger.debug("make_msg:{}".format(self.make_msg))
+        logger.debug("make_msg:{}".format(self.make_msg))
         return self.cast(ctxt, self.make_msg('run_instance',
                 request_spec=request_spec, admin_password=admin_password,
                 injected_files=injected_files,

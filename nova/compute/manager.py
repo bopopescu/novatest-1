@@ -1263,6 +1263,7 @@ class ComputeManager(manager.SchedulerDependentManager):
                      is_first_time=False, node=None):
         logger.debug("run instance")
         logger.debug("called by:{}".format(inspect.getouterframes(inspect.currentframe(),2)))
+        logger.debug("run instance CONTEXT*********:\n{}".format(context))
         if filter_properties is None:
             filter_properties = {}
 
