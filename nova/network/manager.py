@@ -1786,6 +1786,7 @@ class VlanManager(RPCAllocateFixedIP, floating_ips.FloatingIP, NetworkManager):
 
     def create_networks(self, context, **kwargs):
         """Create networks based on parameters."""
+        #create network from command or api bin/nova-mange/NetworkCommands.create_network()
         self._convert_int_args(kwargs)
 
         kwargs["vlan_start"] = kwargs.get("vlan_start") or CONF.vlan_start

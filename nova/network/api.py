@@ -287,7 +287,7 @@ class API(base.Base):
         args['macs'] = macs
         logger.debug(self.network_rpcapi.allocate_for_instance)
         nw_info = self.network_rpcapi.allocate_for_instance(context, **args)
-        logger.debug("nw info:{}".format(nf_info))
+        logger.debug("nw info:{}".format(nw_info))
         logger.debug("{}:{}".format(network_model,network_model.NetworkInfo))
         return network_model.NetworkInfo.hydrate(nw_info)
 

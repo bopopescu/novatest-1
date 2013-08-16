@@ -38,7 +38,7 @@ from eventlet import semaphore
 # This import should no longer be needed when the amqp_rpc_single_reply_queue
 # option is removed.
 from oslo.config import cfg
-from nova.logger import logger,get_caller
+from nova.logger import logger,msg_logger,get_caller
 from nova.openstack.common import excutils
 from nova.openstack.common.gettextutils import _
 from nova.openstack.common import local
@@ -435,7 +435,7 @@ class ProxyCallback(_ThreadPoolWithWait):
         ctxt.update_store()
         try:
             rval = self.proxy.dispatch(ctxt, version, method, **args)
-            logger.debug("rval:{}".format(rval))
+            msg_logger.debug("rval {}:{}".format(rval,type(rval)))
             # Check if the result was a generator
             if inspect.isgenerator(rval):
                 for x in rval:

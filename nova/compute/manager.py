@@ -40,7 +40,7 @@ import inspect
 from eventlet import greenthread
 from oslo.config import cfg
 
-from nova.logger import logger,get_caller
+from nova.logger import logger,get_caller,msg_logger
 from nova import block_device
 from nova.cells import rpcapi as cells_rpcapi
 from nova.cloudpipe import pipelib
@@ -357,7 +357,7 @@ class ComputeManager(manager.SchedulerDependentManager):
         # initialized before that happens.
         self.driver = driver.load_compute_driver(self.virtapi, compute_driver)
         logger.debug("virtapi:{} networkapi:{} volumeapi:{}".format(self.virtapi,self.network_api,self.volume_api))
-	logger.debug("computeapi:{} conductorapi:{} computedrive:{} driver:{}".format(self.compute_api,self.conductor_api,compute_driver,self.driver.__class__))
+        logger.debug("computeapi:{} conductorapi:{} computedrive:{} driver:{}".format(self.compute_api,self.conductor_api,compute_driver,self.driver.__class__))
 
     def _get_resource_tracker(self, nodename):
         rt = self._resource_tracker_dict.get(nodename)
@@ -860,7 +860,7 @@ class ComputeManager(manager.SchedulerDependentManager):
                     logger.debug("macs:{}".format(macs))
                     
                     network_info = self._allocate_network(context, instance,requested_networks, macs, security_groups)
-                    logger.debug("network info:{}".format(network_info))
+                    msg_logger.debug("network info:\n{}:{}".format(network_info,type(network_info)))
 
                     self._instance_update(
                             context, instance['uuid'],
@@ -1043,7 +1043,7 @@ class ComputeManager(manager.SchedulerDependentManager):
         if instance['image_ref']:
             logger.debug("image ref:{}".format(instance["image_ref"]))
             image_meta = _get_image_meta(context, instance['image_ref'])
-            logger.debug("image meta:{}".format(image_meta))
+            msg_logger.debug("image meta:\n{}".format(image_meta))
         else:  # Instance was started from volume - so no image ref
             return {}
 

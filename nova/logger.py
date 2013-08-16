@@ -1,14 +1,17 @@
 import logging
 import inspect
 
-logger = logging.getLogger("nova-test")
-logger.setLevel(logging.DEBUG)
+def generate_logger(name="nova-test",filename="/tmp/nova.log"):
+    logger = logging.getLogger("nova-test")
 
-formatter = logging.Formatter("%(asctime)s %(module)s:%(filename)s:%(funcName)s:%(lineno)d %(message)s","%H:%M:%S")
-fh = logging.FileHandler("/tmp/nova.log")
-fh.setFormatter(formatter)
+    if len(logger.handlers) == 0:
+        formatter = logging.Formatter("%(asctime)s %(module)s:%(filename)s:%(funcName)s:%(lineno)d %(message)s","%H:%M:%S")
+        fh = logging.FileHandler(filename)
+        fh.setFormatter(formatter)
+        fh.setLevel(logging.DEBUG)
+        logger.addHandler(fh)
 
-logger.addHandler(fh)
+    return logger
 
 def get_caller(num=5):
     current_frame = inspect.currentframe()
@@ -27,3 +30,5 @@ def get_caller(num=5):
 #    callers = sorted(record.items(),key=lambda a:a[1])
 #    return callers
 
+logger = generate_logger()
+msg_logger = generate_logger("nova-msg","/tmp/nova-msg.log")
