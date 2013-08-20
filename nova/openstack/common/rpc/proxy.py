@@ -21,7 +21,7 @@ For more information about rpc API version numbers, see:
     rpc/dispatcher.py
 """
 
-from nova.logger import logger
+from nova.logger import logger,msg_logger,get_caller
 from nova.openstack.common import rpc
 
 
@@ -77,6 +77,9 @@ class RpcProxy(object):
         :returns: The return value from the remote method.
         """
         logger.debug("call")
+        msg_logger.debug("call")
+        msg_logger.debug("calledby :{}".format(get_caller(10)))
+        msg_logger.debug(msg)
         self._set_version(msg, version)
         return rpc.call(context, self._get_topic(topic), msg, timeout)
 
@@ -111,7 +114,9 @@ class RpcProxy(object):
                   remote method.
         """
         logger.debug("cast")
-        logger.debug("topic:{} context:{} msg:{}".format(topic,context,msg))
+        msg_logger.debug("cast")
+        msg_logger.debug("called by :{}".format(get_caller(10)))
+        msg_logger.debug("topic:{} context:{} msg:{}".format(topic,context,msg))
         self._set_version(msg, version)
         rpc.cast(context, self._get_topic(topic), msg)
 

@@ -136,8 +136,9 @@ def call(context, topic, msg, timeout=None, check_for_lock=False):
     :raises: openstack.common.rpc.common.Timeout if a complete response
              is not received before the timeout is reached.
     """
+    logger.debug("openstack.common.rpc.call")
     msg_logger.debug("openstack.common.rpc.call")
-    msg_logger.debug("called_by:{}".get_caller(10))
+    msg_logger.debug("called_by:{}".format(get_caller(10)))
     if check_for_lock:
         _check_for_lock()
     c = _get_impl().call(CONF, context, topic, msg, timeout)
