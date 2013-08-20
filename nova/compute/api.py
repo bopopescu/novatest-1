@@ -30,7 +30,7 @@ import uuid
 
 from oslo.config import cfg
 
-from nova.logger import logger
+from nova.logger import logger,get_caller
 from nova import availability_zones
 from nova import block_device
 from nova.compute import instance_actions
@@ -473,7 +473,7 @@ class API(base.Base):
                                          scheduler_hints):
         """Verify all the input parameters regardless of the provisioning
         strategy being performed."""
-
+        logger.debug("but validate first and provision")
         if not metadata:
             metadata = {}
         if not security_groups:
@@ -676,6 +676,7 @@ class API(base.Base):
                         access_ip_v6, requested_networks, config_drive,
                         block_device_mapping, auto_disk_config,
                         reservation_id, scheduler_hints)
+        logger.debug("VALIDATION DONE")
         logger.debug("instances:{},request_spec:{},filter_properties:{}".format(instances,request_spec,filter_properties))
         for instance in instances:
             self._record_action_start(context, instance,
@@ -946,7 +947,8 @@ class API(base.Base):
 
         Returns a tuple of (instances, reservation_id)
         """
-        logger.debug("CREATE")
+        logger.debug("CREATE INIT")
+        logger.debug("called by:{}".format(get_caller(10)))
         logger.debug("CREATE CONTEXT********:\n{}".format(context))
         self._check_create_policies(context, availability_zone,
                 requested_networks, block_device_mapping)

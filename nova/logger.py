@@ -5,7 +5,7 @@ def generate_logger(name="nova-test",filename="/tmp/nova.log"):
     logger = logging.getLogger("nova-test")
 
     if len(logger.handlers) == 0:
-        formatter = logging.Formatter("%(asctime)s %(module)s:%(filename)s:%(funcName)s:%(lineno)d %(message)s","%H:%M:%S")
+        formatter = logging.Formatter("%(asctime)s %(pathname)s:%(filename)s:%(funcName)s:%(lineno)d %(message)s","%H:%M:%S")
         fh = logging.FileHandler(filename)
         fh.setFormatter(formatter)
         fh.setLevel(logging.DEBUG)
