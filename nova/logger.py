@@ -94,12 +94,21 @@ class ColoredLogger(logging.Logger):
         fh.setLevel(logging.DEBUG)
         self.addHandler(fh)
 
+    def debug(self, msg, *args, **kwargs):
+        _msg = ''
+        if type(msg) == dict():
+            for k,b in msg.items():
+                _msg +=  theme.style_left + ''.join(str(i) for i in k) + theme.style_normal + ':' + b + '/n'
+            msg = _msg
+        if type(msg) == list():
+            for x in msg:
+                _msg += x + '/n'
+            msg = _msg
+        logging.Logger.debug(msg,*args,**kwargs)
+
     def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None):
         i = fn.rfind('nova')
-        print fn
         fn = fn[i:]
-        print "make record"
-        print fn
         fn = self.PACKAGE.get(fn.split('/')[1].upper(),theme.style_normal).join(fn)
         #if args.('color')
         return logging.Logger.makeRecord(self,name, level, fn, lno, msg, args, exc_info, func, extra)

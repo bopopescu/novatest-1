@@ -802,8 +802,9 @@ class ComputeManager(manager.SchedulerDependentManager):
                       filter_properties, requested_networks, injected_files,
                       admin_password, is_first_time, node, instance):
         """Launch a new instance with specified options."""
-        logger.debug("_run instance")
-        logger.debug("instance:{} {}".format(instance,instance.__class__))
+        logger.debug("_run_instance")
+        msg_logger.debug("_run_instance")
+        msg_logger.debug("instance:{} {}".format(instance,instance.__class__))
         context = context.elevated()
         logger.debug("context:{}".format(context))
 
@@ -1142,7 +1143,8 @@ class ComputeManager(manager.SchedulerDependentManager):
                 vm_state=vm_states.BUILDING,
                 task_state=task_states.SPAWNING,
                 expected_task_state=task_states.BLOCK_DEVICE_MAPPING)
-        logger.debug("instance:{}".format(instance))
+        msg_logger.debug("_spawn")
+        msg_logger.debug("instance:{}".format(instance))
         try:
             logger.debug(self.driver.spawn)
             self.driver.spawn(context, instance, image_meta,
