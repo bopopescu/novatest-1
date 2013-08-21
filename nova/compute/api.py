@@ -30,7 +30,7 @@ import uuid
 
 from oslo.config import cfg
 
-from nova.logger import logger,get_caller
+from nova.logger import logger,get_caller,msg_logger
 from nova import availability_zones
 from nova import block_device
 from nova.compute import instance_actions
@@ -677,7 +677,7 @@ class API(base.Base):
                         block_device_mapping, auto_disk_config,
                         reservation_id, scheduler_hints)
         logger.debug("VALIDATION DONE")
-        logger.debug("instances:{},request_spec:{},filter_properties:{}".format(instances,request_spec,filter_properties))
+        msg_logger.debug("instances:{},request_spec:{},filter_properties:{}".format(instances,request_spec,filter_properties))
         for instance in instances:
             self._record_action_start(context, instance,
                                       instance_actions.CREATE)

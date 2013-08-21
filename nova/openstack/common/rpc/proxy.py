@@ -76,9 +76,10 @@ class RpcProxy(object):
 
         :returns: The return value from the remote method.
         """
-        logger.debug("call")
+        logger.debug("RpxProxy call()")
+        logger.debug(get_caller(3))
         msg_logger.debug("call")
-        msg_logger.debug("calledby :{}".format(get_caller(10)))
+        msg_logger.debug(get_caller(5))
         msg_logger.debug(msg)
         self._set_version(msg, version)
         return rpc.call(context, self._get_topic(topic), msg, timeout)
@@ -113,7 +114,7 @@ class RpcProxy(object):
         :returns: None.  rpc.cast() does not wait on any return value from the
                   remote method.
         """
-        logger.debug("cast")
+        logger.debug("cast() of RPCProxy")
         msg_logger.debug("cast")
         msg_logger.debug("called by:")
         msg_logger.debug(get_caller(10))

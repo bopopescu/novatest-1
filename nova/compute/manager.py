@@ -817,10 +817,12 @@ class ComputeManager(manager.SchedulerDependentManager):
 
         try:
             logger.debug("start try")
+            #!? rpc/proxy.py is called somewhere why?
             
             self._check_instance_exists(context, instance)
 
             try:
+                logger.debug("start building")
                 self._start_building(context, instance)
             except exception.InstanceNotFound:
                 LOG.info(_("Instance disappeared before we could start it"),
@@ -859,18 +861,19 @@ class ComputeManager(manager.SchedulerDependentManager):
                     macs = self.driver.macs_for_instance(instance)
                     logger.debug("self driver:{}".format(self.driver))
                     logger.debug("macs:{}".format(macs))
-                    
+                    logger.debug("start block device info")
                     network_info = self._allocate_network(context, instance,requested_networks, macs, security_groups)
                     msg_logger.debug("network info:\n{}:{}".format(network_info,type(network_info)))
-
+                    logger.debug("network info DONE")
                     self._instance_update(
                             context, instance['uuid'],
                             vm_state=vm_states.BUILDING,
                             task_state=task_states.BLOCK_DEVICE_MAPPING)
 
+                    logger.debug("start block device info")
                     block_device_info = self._prep_block_device(
                             context, instance, bdms)
-                    logger.debug("block device info:{}".format(block_device_info))
+                    logger.debug("block device info DONE:{}".format(block_device_info))
 
                     set_access_ip = (is_first_time and
                                      not instance['access_ip_v4'] and
@@ -1106,6 +1109,7 @@ class ComputeManager(manager.SchedulerDependentManager):
         logger.debug("is vpn:{}".format(is_vpn))
         try:
             # allocate and get network info
+            logger.debug("Try allocate network")
             logger.debug(self.network_api)
             logger.debug(self.network_api.allocate_for_instance)
             network_info = self.network_api.allocate_for_instance(
@@ -1146,7 +1150,7 @@ class ComputeManager(manager.SchedulerDependentManager):
         msg_logger.debug("_spawn")
         msg_logger.debug("instance:{}".format(instance))
         try:
-            logger.debug(self.driver.spawn)
+            logger.debug("going to driver.spawn with :{}".format(self.driver.spawn))
             self.driver.spawn(context, instance, image_meta,
                               injected_files, admin_password,
                               self._legacy_nw_info(network_info),
