@@ -22,6 +22,8 @@ from oslo.config import cfg
 import webob
 from webob import exc
 
+from nova.logger import *
+
 from nova.api.openstack import common
 from nova.api.openstack.compute import ips
 from nova.api.openstack.compute.views import servers as views_servers
@@ -746,6 +748,7 @@ class Controller(wsgi.Controller):
     @wsgi.deserializers(xml=CreateDeserializer)
     def create(self, req, body):
         """Creates a new server for a given user."""
+        logger.debug("GOT CREATE REQEUST")
         if not self.is_valid_body(body, 'server'):
             raise exc.HTTPUnprocessableEntity()
 

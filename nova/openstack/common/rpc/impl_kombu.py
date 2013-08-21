@@ -30,6 +30,7 @@ import kombu.entity
 import kombu.messaging
 from oslo.config import cfg
 
+from nova.logger import *
 from nova.openstack.common.gettextutils import _
 from nova.openstack.common import network_utils
 from nova.openstack.common.rpc import amqp as rpc_amqp
@@ -800,6 +801,7 @@ def call(conf, context, topic, msg, timeout=None):
 
 def cast(conf, context, topic, msg):
     """Sends a message on a topic without waiting for a response."""
+    logger.debug("cast of impl_kombu topic:{}".format(topic))
     return rpc_amqp.cast(
         conf, context, topic, msg,
         rpc_amqp.get_connection_pool(conf, Connection))

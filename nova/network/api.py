@@ -288,7 +288,8 @@ class API(base.Base):
         logger.debug(self.network_rpcapi.allocate_for_instance)
         nw_info = self.network_rpcapi.allocate_for_instance(context, **args)
         msg_logger.debug("nw info:{}".format(nw_info))
-        logger.debug("{}:{}".format(network_model,network_model.NetworkInfo))
+        logger.debug("got nw_info from network_rpcapi")
+        logger.debug("next is {}:{}".format(network_model,network_model.NetworkInfo))
         return network_model.NetworkInfo.hydrate(nw_info)
 
     @wrap_check_policy

@@ -405,6 +405,7 @@ class ProxyCallback(_ThreadPoolWithWait):
         # It is important to clear the context here, because at this point
         # the previous context is stored in local.store.context
         logger.debug("ProxyCallBack called")
+        logger.debug(('received %s'), message_data)
         if hasattr(local.store, 'context'):
             del local.store.context
         rpc_common._safe_log(LOG.debug, _('received %s'), message_data)
@@ -625,11 +626,13 @@ def call(conf, context, topic, msg, timeout, connection_pool):
 
 def cast(conf, context, topic, msg, connection_pool):
     """Sends a message on a topic without waiting for a response."""
+    logger.debug(('Making asynchronous cast on %s...'), topic)
     LOG.debug(_('Making asynchronous cast on %s...'), topic)
     _add_unique_id(msg)
     pack_context(msg, context)
     with ConnectionContext(conf, connection_pool) as conn:
         conn.topic_send(topic, rpc_common.serialize_msg(msg))
+    logger.debug("MESSAGE SENT DONE!")
 
 
 def fanout_cast(conf, context, topic, msg, connection_pool):

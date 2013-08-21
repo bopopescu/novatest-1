@@ -23,6 +23,7 @@ from xml.dom import minidom
 from lxml import etree
 import webob
 
+from nova.logger import *
 from nova.api.openstack import xmlutil
 from nova import exception
 from nova.openstack.common import jsonutils
@@ -872,10 +873,13 @@ class Resource(wsgi.Application):
 
     @webob.dec.wsgify(RequestClass=Request)
     def __call__(self, request):
+        #!? First called from API request?
         """WSGI method that controls (de)serialization and method dispatch."""
 
         # Identify the action, its arguments, and the requested
         # content type
+        logger.debug("WSGI called")
+
         action_args = self.get_action_args(request.environ)
         action = action_args.pop('action', None)
         content_type, body = self.get_body(request)

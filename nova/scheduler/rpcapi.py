@@ -79,9 +79,9 @@ class SchedulerAPI(nova.openstack.common.rpc.proxy.RpcProxy):
     def run_instance(self, ctxt, request_spec, admin_password,
             injected_files, requested_networks, is_first_time,
             filter_properties):
-        logger.debug("run_instance")
-        logger.debug("cast:{}".format(self.cast))
-        logger.debug("make_msg:{}".format(self.make_msg))
+        logger.debug("SCHEDULER GOT run_instance")
+        #logger.debug("cast:{}".format(self.cast))
+        #logger.debug("make_msg:{}".format(self.make_msg))
         return self.cast(ctxt, self.make_msg('run_instance',
                 request_spec=request_spec, admin_password=admin_password,
                 injected_files=injected_files,
