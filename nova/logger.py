@@ -5,7 +5,7 @@ def generate_logger(name="nova-test",filename="/tmp/nova.log"):
     logger = logging.getLogger("nova-test")
 
     if len(logger.handlers) == 0:
-        formatter = logging.Formatter("%(asctime)s %(pathname)s:%(filename)s:%(funcName)s:%(lineno)d %(message)s","%H:%M:%S")
+        formatter = logging.Formatter("%(asctime)s %(thread)d:%(pathname)s:%(filename)s:%(funcName)s:%(lineno)d %(message)s","%H:%M:%S.%f")
         fh = logging.FileHandler(filename)
         fh.setFormatter(formatter)
         fh.setLevel(logging.DEBUG)
@@ -88,7 +88,7 @@ class ColoredLogger(logging.Logger):
 
     def __init__(self,name='nova-test',filename='/tmp/nova.log'):
         logging.Logger.__init__(self,name,logging.DEBUG)
-        formatter = formatter = logging.Formatter("%(asctime)s %(pathname)s:%(funcName)s:%(lineno)d %(message)s","%H:%M:%S")
+        formatter = formatter = logging.Formatter("%(asctime)s %(thread)d:%(pathname)s:%(funcName)s:%(lineno)d %(message)s","%H:%M:%S")
         fh = logging.FileHandler(filename)
         fh.setFormatter(formatter)
         fh.setLevel(logging.DEBUG)
@@ -109,8 +109,10 @@ class ColoredLogger(logging.Logger):
     def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None):
         i = fn.rfind('nova')
         fn = fn[i:]
-        fn = self.PACKAGE.get(fn.split('/')[1].upper(),theme.style_normal).join(fn)
+        fn = self.PACKAGE.get(fn.split('/')[1].upper(),theme.style_normal) + ''.join(str(i) for i in fn) + theme.style_normal
+
         #if args.('color')
+        
         return logging.Logger.makeRecord(self,name, level, fn, lno, msg, args, exc_info, func, extra)
 
 logger = ColoredLogger()
