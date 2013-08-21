@@ -98,12 +98,21 @@ class ColoredLogger(logging.Logger):
         m = '{}'
         _msg = ''
         if isinstance(msg,dict):
+            _msg += m.format(type(msg))
             for k,b in msg.items():
                 string = '\n' + theme.style_yellow + ''.join(m.format(i) for i in k) + theme.style_normal + ':' + m.format(b)
                 _msg += string 
             msg = _msg
-        if isinstance(msg,list):
+        elif hasattr(msg,"__iter__"):
+            _msg += m.format(type(msg))
             for x in msg:
+                if hasattr(x,"__iter__"):
+                   _msg += "\n" + "NEST ITER"
+                   for _x in x:
+                       string = '\n' + m.format(_x)
+                       _msg += string
+                   _msg += "\n" + "NEST FINISH"
+                   continue
                 string = '\n' + m.format(x)
                 _msg += string 
             msg = _msg
