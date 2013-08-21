@@ -18,17 +18,91 @@ def get_caller(num=5):
     outerframes = inspect.getouterframes(current_frame)
     return map(lambda x:[x[1],x[2],x[3]],outerframes)[1:num]
 
-#def get_caller(num=5):
-#    record = dict()
-#    current_frame = None
-#    for x in xrange(num):
-#        if current_frame is None:
-#           current_frame = inspect.currentframe()
-#        current_frame = getattr(current_frame,"f_back")
-#        caller = inspect.getframeinfo(curent_frame)[2]
-#        record[caller] = record.get(caller,0) + 1
-#    callers = sorted(record.items(),key=lambda a:a[1])
-#    return callers
+class Color:
+    normal = "\033[0m"
+    black = "\033[30m"
+    red = "\033[31m"
+    green = "\033[32m"
+    yellow = "\033[33m"
+    blue = "\033[34m"
+    purple = "\033[35m"
+    cyan = "\033[36m"
+    grey = "\033[37m"
 
-logger = generate_logger()
-msg_logger = generate_logger("nova-msg","/tmp/nova-msg.log")
+    bold = "\033[1m"
+    uline = "\033[4m"
+    blink = "\033[5m"
+    invert = "\033[7m"
+
+class AnsiColorTheme(object):
+    def __getattr__(self, attr):
+        if attr.startswith("__"):
+            raise AttributeError(attr)
+        s = "style_%s" % attr
+        if s in self.__class__.__dict__:
+            before = getattr(self, s)
+            after = self.style_normal
+        else:
+            before = after = ""
+
+        def do_style(val, fmt=None, before=before, after=after):
+            if fmt is None:
+                if type(val) is not str:
+                    val = str(val)
+            else:
+                val = fmt % val
+            return before+val+after
+        return do_style
+
+class DefaultTheme(AnsiColorTheme):
+    style_normal = Color.normal
+    style_prompt = Color.blue+Color.bold
+    style_punct = Color.normal
+    style_id = Color.blue+Color.bold
+    style_not_printable = Color.grey
+    style_class_name = Color.red+Color.bold
+    style_field_name = Color.blue
+    style_field_value = Color.purple
+    style_emph_field_name = Color.blue+Color.uline+Color.bold
+    style_emph_field_value = Color.purple+Color.uline+Color.bold
+    style_watchlist_type = Color.blue
+    style_watchlist_value = Color.purple
+    style_fail = Color.red+Color.bold
+    style_success = Color.blue+Color.bold
+    style_even = Color.black+Color.bold
+    style_odd = Color.black
+    style_yellow = Color.yellow
+    style_active = Color.black
+    style_closed = Color.grey
+    style_left = Color.blue+Color.invert
+    style_right = Color.red+Color.invert
+
+theme = default_theme = DefaultTheme()
+
+#https://gist.github.com/tzuryby/1474991
+class ColoredLogger(logging.Logger):
+
+    PACKAGE = {'COMPUTE':theme.style_right,'API':theme.style_left,'NETWORK':theme.style_yellow,
+               'CONDUCTOR':theme.style_id,'CERT':theme.style_even,'VIRT':theme.style_success,
+               'SCHEDULER':theme.style_prompt,'OPENSTACK':theme.style_emph_field_name}
+
+    def __init__(self,name='nova-test',filename='/tmp/nova.log'):
+        logging.Logger.__init__(self,name,logging.DEBUG)
+        formatter = formatter = logging.Formatter("%(asctime)s %(pathname)s:%(funcName)s:%(lineno)d %(message)s","%H:%M:%S")
+        fh = logging.FileHandler(filename)
+        fh.setFormatter(formatter)
+        fh.setLevel(logging.DEBUG)
+        self.addHandler(fh)
+
+    def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None):
+        i = fn.rfind('nova')
+        print fn
+        fn = fn[i:]
+        print "make record"
+        print fn
+        fn = self.PACKAGE.get(fn.split('/')[1].upper(),theme.style_normal).join(fn)
+        #if args.('color')
+        return logging.Logger.makeRecord(self,name, level, fn, lno, msg, args, exc_info, func, extra)
+
+logger = ColoredLogger()
+msg_logger = ColoredLogger("nova-msg","/tmp/nova-msg.log")
