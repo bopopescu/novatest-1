@@ -1,17 +1,17 @@
 import logging
 import inspect
 
-def generate_logger(name="nova-test",filename="/tmp/nova.log"):
-    logger = logging.getLogger("nova-test")
-
-    if len(logger.handlers) == 0:
-        formatter = logging.Formatter("%(asctime)s %(thread)d:%(pathname)s:%(filename)s:%(funcName)s:%(lineno)d %(message)s","%H:%M:%S.%f")
-        fh = logging.FileHandler(filename)
-        fh.setFormatter(formatter)
-        fh.setLevel(logging.DEBUG)
-        logger.addHandler(fh)
-
-    return logger
+#def generate_logger(name="nova-test",filename="/tmp/nova.log"):
+#    logger = logging.getLogger("nova-test")
+#
+#    if len(logger.handlers) == 0:
+#        formatter = logging.Formatter("%(asctime)s %(thread)d:%(pathname)s:%(filename)s:%(funcName)s:%(lineno)d %(message)s","%H:%M:%S.%f")
+#        fh = logging.FileHandler(filename)
+#        fh.setFormatter(formatter)
+#        fh.setLevel(logging.DEBUG)
+#        logger.addHandler(fh)
+#
+#    return logger
 
 def get_caller(num=5):
     current_frame = inspect.currentframe()
@@ -95,24 +95,29 @@ class ColoredLogger(logging.Logger):
         self.addHandler(fh)
 
     def debug(self, msg, *args, **kwargs):
+        m = '{}'
         _msg = ''
-        if type(msg) == dict():
+        if isinstance(msg,dict):
             for k,b in msg.items():
-                _msg +=  theme.style_left + ''.join(str(i) for i in k) + theme.style_normal + ':' + b + '/n'
+                string = '\n' + theme.style_yellow + ''.join(m.format(i) for i in k) + theme.style_normal + ':' + m.format(b)
+                _msg += string 
             msg = _msg
-        if type(msg) == list():
+        if isinstance(msg,list):
             for x in msg:
-                _msg += x + '/n'
+                string = '\n' + m.format(x)
+                _msg += string 
             msg = _msg
-        logging.Logger.debug(msg,*args,**kwargs)
+        if self.isEnabledFor(logging.DEBUG):             
+           self._log(logging.DEBUG, msg, args, **kwargs)
+        #logging.Logger.debug(self,msg,*args,**kwargs)
 
     def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None):
         i = fn.rfind('nova')
         fn = fn[i:]
+        #msg = fn.split('/')[1].upper() + ":" + self.PACKAGE.get(fn.split('/')[1].upper(),"NONE")
         fn = self.PACKAGE.get(fn.split('/')[1].upper(),theme.style_normal) + ''.join(str(i) for i in fn) + theme.style_normal
-
+        #fn = self.PACKAGE.get("OPENSTACK") + ''.join(str(i) for i in fn) + theme.style_normal
         #if args.('color')
-        
         return logging.Logger.makeRecord(self,name, level, fn, lno, msg, args, exc_info, func, extra)
 
 logger = ColoredLogger()
