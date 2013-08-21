@@ -138,11 +138,13 @@ def call(context, topic, msg, timeout=None, check_for_lock=False):
     """
     logger.debug("openstack.common.rpc.call")
     msg_logger.debug("openstack.common.rpc.call")
-    msg_logger.debug("called_by:{}".format(get_caller(10)))
+    msg_logger.debug("called_by:")
+    msg_logger.debug(get_caller(10))
     if check_for_lock:
         _check_for_lock()
     c = _get_impl().call(CONF, context, topic, msg, timeout)
-    msg_logger.debug("c {}:{}".format(c,type(c)))
+    msg_logger.debug("variable c on call() {}:".format(type(c)))
+    msg_logger.debug(c)
     return c
 
 

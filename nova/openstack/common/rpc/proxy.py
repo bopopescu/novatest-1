@@ -115,8 +115,10 @@ class RpcProxy(object):
         """
         logger.debug("cast")
         msg_logger.debug("cast")
-        msg_logger.debug("called by :{}".format(get_caller(10)))
-        msg_logger.debug("topic:{} context:{} msg:{}".format(topic,context,msg))
+        msg_logger.debug("called by:")
+        msg_logger.debug(get_caller(10))
+        msg_logger.debug("topic:{} context:{} msg:".format(topic,context))
+        msg_logger.debug(msg)
         self._set_version(msg, version)
         rpc.cast(context, self._get_topic(topic), msg)
 
