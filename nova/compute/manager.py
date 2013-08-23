@@ -2330,6 +2330,7 @@ class ComputeManager(manager.SchedulerDependentManager):
         Possibly changes the RAM and disk size in the process.
 
         """
+        #!?call resize_instance through rpc cast
         if node is None:
             node = self.driver.get_available_nodes()[0]
             LOG.debug(_("No node specified, defaulting to %(node)s") %
@@ -2404,6 +2405,8 @@ class ComputeManager(manager.SchedulerDependentManager):
                         reservations=None, migration=None, migration_id=None,
                         instance_type=None):
         """Starts the migration of a running instance to another host."""
+        #!? prep_resize,rpc and here
+        # essentialy "migration"
         if not migration:
             migration = self.conductor_api.migration_get(context, migration_id)
         with self._error_out_instance_on_exception(context, instance['uuid'],

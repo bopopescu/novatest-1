@@ -405,7 +405,8 @@ class ProxyCallback(_ThreadPoolWithWait):
         # It is important to clear the context here, because at this point
         # the previous context is stored in local.store.context
         logger.debug("ProxyCallBack called")
-        logger.debug(('received %s'), message_data)
+        msg_logger.debug("Proxy CallBack called")
+        msg_logger.debug(('received %s'), message_data)
         if hasattr(local.store, 'context'):
             del local.store.context
         rpc_common._safe_log(LOG.debug, _('received %s'), message_data)

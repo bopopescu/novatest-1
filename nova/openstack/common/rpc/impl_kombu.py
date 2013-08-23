@@ -703,6 +703,7 @@ class Connection(object):
 
     def topic_send(self, topic, msg, timeout=None):
         """Send a 'topic' message"""
+        logger.debug("topic_send topic:{}".format(topic))
         self.publisher_send(TopicPublisher, topic, msg, timeout)
 
     def fanout_send(self, topic, msg):
@@ -711,10 +712,12 @@ class Connection(object):
 
     def notify_send(self, topic, msg, **kwargs):
         """Send a notify message on a topic"""
+        logger.debug("notify_send topic:{}".format(topic))
         self.publisher_send(NotifyPublisher, topic, msg, None, **kwargs)
 
     def consume(self, limit=None):
         """Consume from all queues/consumers"""
+        logger.debug("consume limit:{}".format(limit))
         it = self.iterconsume(limit=limit)
         while True:
             try:
@@ -794,6 +797,8 @@ def multicall(conf, context, topic, msg, timeout=None):
 
 def call(conf, context, topic, msg, timeout=None):
     """Sends a message on a topic and wait for a response."""
+    logger.debug("call of impl_kombu topic:{}".format(topic))
+    #logger.debug()
     return rpc_amqp.call(
         conf, context, topic, msg, timeout,
         rpc_amqp.get_connection_pool(conf, Connection))
